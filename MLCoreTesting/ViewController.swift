@@ -8,6 +8,8 @@
 
 import UIKit
 import MobileCoreServices
+import Vision
+import CoreML
 
 class ViewController: UIViewController {
     @IBOutlet weak var imageView: UIImageView!
@@ -25,18 +27,48 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view, typically from a nib.
         setupImagePicker()
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-
+    
     func setupImagePicker() {
         imagePicker = UIImagePickerController()
         imagePicker.delegate = self
-        imagePicker.allowsEditing = false
-        imagePicker.mediaTypes = [kUTTypeJPEG as String]
-        imagePicker.sourceType = .photoLibrary
+        imagePicker.sourceType = .camera
+    }
+    
+    func predict(image: UIImage) {
+        let model = try! VNCoreMLModel(for: Inceptionv3().model)
+        let request = VNCoreMLRequest(model: model, completionHandler: myResultsMethod)
+        let handler = VNImageRequestHandler(cgImage: image.cgImage!)
+        try! handler.perform([request])
+    }
+    
+    func myResultsMethod(request: VNRequest, error: Error?) {
+        guard let results = request.results as? [VNClassificationObservation] else {
+            resultsLabel.text = "🙀"
+            return
+        }
+        
+        guard results.count != 0 else {
+            resultsLabel.text = "🙀"
+            return
+        }
+        
+        for classification in results[...10] {
+            print(classification.identifier,
+                  classification.confidence)
+        }
+        
+        let highestConfidenceResult = results.first!
+        
+        print(highestConfidenceResult.identifier,
+              highestConfidenceResult.confidence)
+        
+        var identifier = highestConfidenceResult.identifier
+        
+        if identifier.contains(", ") {
+            identifier = String(describing: identifier.split(separator: ",").first!)
+        }
+        
+        resultsLabel.text = identifier
     }
 }
 
@@ -49,8 +81,9 @@ extension ViewController: UIImagePickerControllerDelegate {
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         defer { imagePicker.dismiss(animated: true) }
         
-        if let image = info[UIImagePickerControllerOriginalImage] as? UIImage {
-            imageView.image = image
-        }
+        let image = info[UIImagePickerControllerOriginalImage] as! UIImage
+        
+        imageView.image = image
+        predict(image: image)
     }
 }
