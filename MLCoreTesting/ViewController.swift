@@ -12,9 +12,12 @@ import Vision
 import CoreML
 
 class ViewController: UIViewController {
+    
+    // MARK: IBOutlets
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var resultsLabel: UILabel!
     
+    // MARK: IBActions
     @IBAction func selectPhotoButtonTapped(_ sender: UIButton) {
         // Prompt user for image picker type.
         let actionSheet = UIAlertController(title: "Photo Source", message: "Select a photo source.", preferredStyle: .actionSheet)
@@ -35,19 +38,22 @@ class ViewController: UIViewController {
         self.present(actionSheet, animated: true)
     }
     
+    // MARK: Properties
     private var imagePicker: UIImagePickerController!
     
+    // MARK: View Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
         setupImagePicker()
     }
     
+    // MARK: Setup
     func setupImagePicker() {
         imagePicker = UIImagePickerController()
         imagePicker.delegate = self
     }
     
+    // MARK: Methods
     func predict(image: UIImage) {
         let model = try! VNCoreMLModel(for: Inceptionv3().model)
         let request = VNCoreMLRequest(model: model, completionHandler: myResultsMethod)
@@ -86,11 +92,13 @@ class ViewController: UIViewController {
     }
 }
 
+// MARK: UINavigationControlerDelegate Extension
 extension ViewController: UINavigationControllerDelegate {
     // TODO
     // Don't think I actually need to do anything here.
 }
 
+// MARK: UIImagePickerControllerDelegate Extension
 extension ViewController: UIImagePickerControllerDelegate {
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         defer { imagePicker.dismiss(animated: true) }
