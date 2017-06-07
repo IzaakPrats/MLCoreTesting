@@ -16,8 +16,23 @@ class ViewController: UIViewController {
     @IBOutlet weak var resultsLabel: UILabel!
     
     @IBAction func selectPhotoButtonTapped(_ sender: UIButton) {
-        // Prompt user
-        self.present(imagePicker, animated: true)
+        // Prompt user for image picker type.
+        let actionSheet = UIAlertController(title: "Photo Source", message: "Select a photo source.", preferredStyle: .actionSheet)
+        let libraryAction = UIAlertAction(title: "Photo Library", style: .default) { alertAction in
+            self.imagePicker.sourceType = .photoLibrary
+            self.present(self.imagePicker, animated: true)
+        }
+        let cameraAction = UIAlertAction(title: "Camera", style: .default) { alertAction in
+            self.imagePicker.sourceType = .camera
+            self.present(self.imagePicker, animated: true)
+        }
+        
+        // Add actions to action sheet
+        actionSheet.addAction(libraryAction)
+        actionSheet.addAction(cameraAction)
+        
+        // Present action sheet
+        self.present(actionSheet, animated: true)
     }
     
     private var imagePicker: UIImagePickerController!
@@ -31,7 +46,6 @@ class ViewController: UIViewController {
     func setupImagePicker() {
         imagePicker = UIImagePickerController()
         imagePicker.delegate = self
-        imagePicker.sourceType = .camera
     }
     
     func predict(image: UIImage) {
@@ -43,12 +57,12 @@ class ViewController: UIViewController {
     
     func myResultsMethod(request: VNRequest, error: Error?) {
         guard let results = request.results as? [VNClassificationObservation] else {
-            resultsLabel.text = "🙀"
+            resultsLabel.text = "??🙀??"
             return
         }
         
         guard results.count != 0 else {
-            resultsLabel.text = "🙀"
+            resultsLabel.text = "??🙀??"
             return
         }
         
